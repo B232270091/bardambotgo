@@ -1,0 +1,2036 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Бардам Ботгохон</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#302d39;font-family:'Noto Sans',sans-serif;color:#493a32}
+body{display:grid;place-items:center}
+button{font:inherit;cursor:pointer;border:0;color:inherit;touch-action:manipulation}
+button:focus-visible{outline:5px solid #427caa;outline-offset:4px}
+#stage{width:1280px;height:720px;position:absolute;overflow:hidden;transform-origin:center;background:#e6d6ad;border-radius:20px;box-shadow:0 20px 80px #0005;isolation:isolate}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+#hud{position:absolute;top:22px;left:28px;right:28px;display:flex;align-items:center;gap:12px;z-index:3}
+#badge{font-size:22px;font-weight:800;background:#fff8eadd;padding:12px 20px;border-radius:24px;max-width:700px}
+.spacer{flex:1}
+.small{background:#fff9edeb;border:2px solid #d7bd91;border-radius:20px;padding:10px 17px;font-size:20px;font-weight:700;box-shadow:0 3px 0 #bba27e55}
+.small:active,.btn:active{transform:translateY(3px);box-shadow:none}
+#hint{position:absolute;top:92px;left:50%;transform:translateX(-50%);max-width:1030px;width:max-content;background:#fffaf0ee;border:2px solid #eedcbf;padding:10px 22px;border-radius:22px;font-size:24px;text-align:center;z-index:3;pointer-events:none}
+#panel{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;z-index:5;background:#49382424;padding:60px 90px}
+.paper{width:100%;max-width:1050px;background:#fffaf0f7;border:3px solid #e9d3ad;border-radius:36px;padding:32px 42px;box-shadow:0 15px 45px #765c3226;text-align:center}
+.paper.title{max-width:630px;margin-left:480px;background:#fffaf0eb}
+.eyebrow{font-size:21px;letter-spacing:3px;font-weight:800;color:#9b7150}
+.paper h1{font-size:61px;line-height:1.2;margin:12px 0 20px;color:#685044}
+.paper h2{font-size:38px;line-height:1.35;margin:12px 0 20px}
+.paper p{font-size:26px;line-height:1.55;margin:12px 0 22px}
+.actions{display:flex;flex-wrap:wrap;justify-content:center;gap:14px}
+.btn{padding:14px 25px;min-height:60px;background:#75adb3;border:2px solid #598f96;border-radius:20px;color:#fff;font-size:26px;font-weight:700;box-shadow:0 5px 0 #46767b}
+.btn.secondary{background:#f0dcaf;color:#66503c;border-color:#d2b981;box-shadow:0 5px 0 #c1a56f}
+.btn.choice{width:100%;font-size:25px;background:#f2e8d3;color:#4f4637;border-color:#d8c69f;box-shadow:0 4px 0 #d8c69f;text-align:left}
+.btn.choice.selected{outline:4px solid #598f96;outline-offset:2px}
+.chaptergrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.chaptergrid .btn{font-size:24px}
+.proverb{border:3px double #b78c53;border-radius:18px;padding:16px;font-size:30px;font-weight:800;background:#f8edce;margin:15px 0 24px}
+.questions{text-align:left;font-size:26px;line-height:1.6;padding-left:32px}
+.questions li{margin:12px 0}
+#dialogue{position:absolute;bottom:24px;left:28px;right:28px;min-height:210px;background:#fffaf3f7;border:3px solid #d7bd94;border-radius:28px;padding:22px 26px;z-index:6;box-shadow:0 10px 35px #70542c22;display:flex;gap:20px;cursor:pointer}
+#portrait{width:116px;height:130px;position:relative;flex-shrink:0;background:#e8ead5;border-radius:24px;margin-top:5px}
+#portrait canvas{width:116px;height:130px}
+.dialoguebody{flex:1;min-width:0}
+#speaker{font-size:24px;font-weight:800;color:#407b86;margin-bottom:8px}
+#words{font-size:28px;line-height:1.52;min-height:84px;white-space:pre-wrap}
+#continue{float:right;font-size:20px;padding:6px 12px;border-radius:12px;background:#eee0c6;margin-top:5px}
+#touch{position:absolute;bottom:28px;left:30px;right:30px;display:flex;justify-content:space-between;align-items:end;z-index:4;pointer-events:none}
+.dpad{display:grid;grid-template-columns:68px 68px 68px;grid-template-rows:64px 64px;gap:7px}
+.control{pointer-events:auto;background:#fff9e8dd;border:3px solid #c5ab7d;border-radius:20px;font-size:33px;font-weight:800;box-shadow:0 5px 0 #aa90665c;user-select:none;touch-action:none}
+.control.active{background:#bcdce0;transform:translateY(3px)}
+#action{width:190px;height:79px;font-size:25px}
+.up{grid-column:2}
+.left{grid-column:1;grid-row:2}
+.down{grid-column:2;grid-row:2}
+.right{grid-column:3;grid-row:2}
+#meter{position:absolute;bottom:35px;left:290px;right:270px;background:#fff4dfd9;padding:12px 20px;border-radius:20px;z-index:3;text-align:center;font-size:21px;font-weight:700;pointer-events:none}
+#track{height:12px;border-radius:8px;background:#d7c399;margin-top:8px;overflow:hidden}
+#fill{height:100%;background:#72aaa1;width:0;border-radius:8px}
+#pause{position:absolute;inset:0;z-index:10;background:#433c39a8;display:grid;place-items:center;padding:90px}
+#pause .paper{max-width:680px}
+[hidden]{display:none!important}
+@media(prefers-reduced-motion:reduce){button{transition:none}}
+</style>
+</head>
+<body>
+<main id="stage" aria-label="Бардам Ботгохон тоглоом">
+  <canvas id="world" width="1280" height="720" aria-label="Говийн үлгэрийн ертөнц"></canvas>
+
+  <header id="hud">
+    <div id="badge">ГОВИЙН БЯЦХАН ҮЛГЭР</div>
+    <div class="spacer"></div>
+    <button class="small" id="sound" aria-label="Дуу хаах/нээх">Дуу нээх ♪</button>
+    <button class="small" id="pauseButton">Зогсоох Ⅱ</button>
+  </header>
+
+  <div id="hint" hidden></div>
+  <section id="panel" hidden></section>
+
+  <section id="dialogue" aria-label="Харилцан яриа" hidden>
+    <div id="portrait">
+      <canvas id="face" width="232" height="260"></canvas>
+    </div>
+    <div class="dialoguebody">
+      <div id="speaker"></div>
+      <div id="words"></div>
+      <button id="continue">Үргэлжлүүлэх ▸</button>
+    </div>
+  </section>
+
+  <div id="touch" hidden>
+    <div class="dpad">
+      <button class="control up" data-key="ArrowUp" aria-label="Дээш">↑</button>
+      <button class="control left" data-key="ArrowLeft" aria-label="Зүүн">←</button>
+      <button class="control down" data-key="ArrowDown" aria-label="Доош">↓</button>
+      <button class="control right" data-key="ArrowRight" aria-label="Баруун">→</button>
+    </div>
+    <button class="control" id="action" data-key="Space">Ярилцах</button>
+  </div>
+
+  <div id="meter" hidden>
+    <span id="meterText"></span>
+    <div id="track"><div id="fill"></div></div>
+  </div>
+
+  <section id="pause" hidden>
+    <div class="paper">
+      <div class="eyebrow">ТҮР АМАРЦГААЯ</div>
+      <h2>Үлгэр чинь хүлээж байна.</h2>
+      <div class="actions">
+        <button class="btn" id="resume">Үргэлжлүүлэх</button>
+        <button class="btn secondary" id="home">Гарчиг руу буцах</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+'use strict';
+
+const $ = id => document.getElementById(id);
+const canvas = $('world');
+const ctx = canvas.getContext('2d');
+const face = $('face').getContext('2d');
+const W = 1280, H = 720, TAU = Math.PI * 2;
+const TRAVEL_SECONDS = 5;
+const names = [
+  'Хөх худаг',
+  'Дараалал',
+  'Ганцаараа говьд',
+  'Найзууд тусална',
+  'Уучлал',
+  'Шинэ Ботгохон'
+];
+
+let mode = 'title', scene = 'well', chapter = 0, time = 0;
+let paused = false, lastInput = 0, hintUntil = 0;
+let hintText = '', instruction = '', selected = 0;
+let menuButtons = [], primary = null;
+let actors = [], player = null, queue = [], line = 0, typed = 0;
+let dialogueDone = null, phase = '', elapsed = 0, spawn = 0;
+let obstacles = [], jump = 0, vy = 0, flash = 0, scroll = 0;
+let met = new Set(), given = new Set(), carrying = false;
+let hearts = [], push = 0, fall = false, returnTime = 0, waitTime = 0;
+let bird = {}, maze = {}, runnerTime = 0;
+const keys = new Set();
+
+function fit() {
+  const scale = Math.min(innerWidth / W, innerHeight / H);
+  $('stage').style.transform = `scale(${scale})`;
+}
+addEventListener('resize', fit);
+fit();
+
+// Web Audio: a quiet pentatonic melody and gentle interaction sounds.
+let audio = null, master = null, muted = true;
+let musicClock = 0, musicIndex = 0;
+
+function initAudio() {
+  if (!audio) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    audio = new AC();
+    master = audio.createGain();
+    master.gain.value = muted ? 0 : .24;
+    master.connect(audio.destination);
+  }
+  if (audio.state === 'suspended') audio.resume().catch(() => {});
+}
+
+function tone(f, duration = .2, type = 'sine', volume = .2) {
+  if (!audio || muted || paused) return;
+  const oscillator = audio.createOscillator();
+  const gain = audio.createGain();
+  const now = audio.currentTime;
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(f, now);
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(volume, now + .025);
+  gain.gain.exponentialRampToValueAtTime(.001, now + duration);
+  oscillator.connect(gain);
+  gain.connect(master);
+  oscillator.start(now);
+  oscillator.stop(now + duration + .03);
+}
+
+function chime() {
+  tone(523, .25);
+  setTimeout(() => tone(659, .3), 100);
+  setTimeout(() => tone(784, .5), 200);
+}
+
+$('sound').onclick = () => {
+  muted = !muted;
+  initAudio();
+  if (master) master.gain.setTargetAtTime(muted ? 0 : .24, audio.currentTime, .05);
+  $('sound').textContent = muted ? 'Дуу нээх ♪' : 'Дуу хаах ♪';
+  $('sound').setAttribute('aria-pressed', String(!muted));
+};
+
+function clearKeys() {
+  keys.clear();
+  document.querySelectorAll('.control').forEach(b => b.classList.remove('active'));
+}
+
+function pause(value) {
+  paused = value;
+  clearKeys();
+  $('pause').hidden = !value;
+  if (master) {
+    master.gain.setTargetAtTime(value || muted ? 0 : .24, audio.currentTime, .06);
+  }
+}
+
+$('pauseButton').onclick = () => pause(true);
+$('resume').onclick = () => pause(false);
+$('home').onclick = () => {
+  pause(false);
+  title();
+};
+
+addEventListener('blur', () => {
+  clearKeys();
+  if (mode !== 'title') pause(true);
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    clearKeys();
+    if (mode !== 'title') pause(true);
+  }
+});
+
+function input() {
+  lastInput = time;
+  initAudio();
+}
+
+function setMode(next) {
+  mode = next;
+  clearKeys();
+  $('panel').hidden = true;
+  $('dialogue').hidden = true;
+  $('touch').hidden = ![
+    'explore', 'walk', 'storm', 'bird', 'maze', 'runner', 'queue', 'leaves'
+  ].includes(next);
+  $('meter').hidden = true;
+  $('hint').hidden = true;
+  hintUntil = 0;
+  instruction = '';
+  menuButtons = [];
+  primary = null;
+  lastInput = time;
+}
+
+function hint(text, duration = 4) {
+  hintText = text;
+  hintUntil = time + duration;
+}
+
+function meter(text, value) {
+  $('meter').hidden = false;
+  $('meterText').textContent = text;
+  $('fill').style.width = `${Math.max(0, Math.min(1, value)) * 100}%`;
+}
+
+function buttons(items) {
+  const box = document.createElement('div');
+  box.className = 'actions';
+  menuButtons = [];
+  selected = 0;
+
+  items.forEach(([label, callback, style = '']) => {
+    const button = document.createElement('button');
+    button.className = 'btn ' + style;
+    button.textContent = label;
+    button.onclick = event => {
+      event.stopPropagation();
+      input();
+      tone(440, .1);
+      callback();
+    };
+    box.appendChild(button);
+    menuButtons.push(button);
+  });
+
+  primary = () => menuButtons[selected]?.click();
+  return box;
+}
+
+function panel(titleText, body, items, style = '', eyebrow = 'БАРДАМ БОТГОХОН') {
+  setMode('panel');
+  const container = $('panel');
+  container.replaceChildren();
+
+  const paper = document.createElement('div');
+  paper.className = 'paper ' + style;
+
+  const smallTitle = document.createElement('div');
+  smallTitle.className = 'eyebrow';
+  smallTitle.textContent = eyebrow;
+  paper.appendChild(smallTitle);
+
+  const heading = document.createElement(style === 'title' ? 'h1' : 'h2');
+  heading.textContent = titleText;
+  paper.appendChild(heading);
+
+  if (body) {
+    const paragraph = document.createElement('p');
+    paragraph.textContent = body;
+    paper.appendChild(paragraph);
+  }
+
+  paper.appendChild(buttons(items));
+  container.appendChild(paper);
+  container.hidden = false;
+  return paper;
+}
+
+function talk(lines, done) {
+  setMode('dialogue');
+  queue = lines;
+  line = 0;
+  dialogueDone = done;
+  $('dialogue').hidden = false;
+  showLine();
+}
+
+function showLine() {
+  typed = 0;
+  const [who, text, event] = queue[line];
+  $('speaker').textContent = who || 'Өгүүлэгч';
+  $('words').textContent = '';
+  $('words').style.fontStyle = who ? 'normal' : 'italic';
+  $('portrait').hidden = !who;
+  $('continue').textContent = 'Үргэлжлүүлэх ▸';
+  if (event) event();
+}
+
+function nextLine() {
+  if (mode !== 'dialogue') return;
+  const text = queue[line][1];
+
+  if (typed < text.length) {
+    typed = text.length;
+    $('words').textContent = text;
+    return;
+  }
+
+  if (++line < queue.length) {
+    showLine();
+  } else {
+    const callback = dialogueDone;
+    $('dialogue').hidden = true;
+    callback?.();
+  }
+}
+
+$('dialogue').onclick = () => {
+  input();
+  nextLine();
+};
+
+function actor(kind, x, y, scale = 1) {
+  return { kind, x, y, s: scale, dir: 1, moving: false };
+}
+
+function well() {
+  scene = 'well';
+  push = 0;
+  fall = false;
+  actors = [
+    actor('camel', 360, 520, 1.05),
+    actor('goat', 765, 535, .85),
+    actor('marmot', 965, 525, .95),
+    actor('bird', 1110, 430, .9)
+  ];
+  player = actors[0];
+}
+
+function badge(text) {
+  $('badge').textContent = text;
+}
+
+function title() {
+  chapter = 0;
+  well();
+  player.x = 290;
+  player.y = 520;
+  player.s = 1.5;
+  actors[1].x = 130;
+  actors[1].y = 580;
+  actors[2].x = 420;
+  actors[2].y = 590;
+  actors[3].x = 380;
+  actors[3].y = 315;
+  hearts = [];
+  badge('ГОВИЙН БЯЦХАН ҮЛГЭР');
+
+  panel(
+    'Бардам Ботгохон',
+    'Том биеэс илүү том сэтгэлтэй болох бяцхан аялал.',
+    [
+      ['Тоглох', () => chapterCard(1)],
+      ['Бүлэг сонгох', selectChapters, 'secondary']
+    ],
+    'title',
+    'УНШ • ТОГЛО • НАЙЗАЛ'
+  );
+}
+
+function selectChapters() {
+  const paper = panel(
+    'Бүлэг сонгох',
+    'Үлгэрийг эхнээс нь эсвэл дуртай бүлгээсээ тоглоорой.',
+    names.map((name, index) => [
+      `${index + 1}. ${name}`,
+      () => chapterCard(index + 1),
+      'secondary'
+    ]).concat([
+      ['Гарчиг руу буцах', title, 'secondary']
+    ])
+  );
+  paper.querySelector('.actions').className = 'chaptergrid';
+}
+
+function chapterCard(number) {
+  chapter = number;
+  well();
+  jump = 0;
+  vy = 0;
+  obstacles = [];
+  hearts = [];
+  scroll = 0;
+  flash = 0;
+  carrying = false;
+
+  badge(`Бүлэг ${number}: ${names[number - 1]}`);
+
+  const descriptions = [
+    'Найзуудтайгаа танилцаарай.',
+    'Бүгдэд ээлж бий.',
+    'Говийн замаар хамт алхъя.',
+    'Найз бүрийн чадвар хэрэг болно.',
+    'Уучлал гуйх нь зоригтой алхам.',
+    'Сайхан сэтгэлээ үйлдлээр харуулъя.'
+  ];
+
+  panel(
+    `Бүлэг ${number}: ${names[number - 1]}`,
+    descriptions[number - 1],
+    [['Үргэлжлүүлэх', () => startChapter(number)]]
+  );
+}
+
+function startChapter(number) {
+  if (number === 1) {
+    talk([
+      [
+        '',
+        'Эрт урьд цагт уудам говийн дунд Хөх худаг гэдэг тунгалаг устай худаг байжээ. Түүнийг тойрон олон амьтан эвтэй найртай амьдардаг байв.'
+      ],
+      [
+        '',
+        'Ботгохон хурдан өсөж, хөл нь урт, бөх нь өндөр болжээ. Тэгээд аяндаа бардам болж эхэлсэн байна.'
+      ],
+      [
+        'Ботгохон',
+        'Би энэ говийн хамгийн том, хамгийн хүчтэй нь. Надад хэн ч хэрэггүй!'
+      ]
+    ], () => {
+      met = new Set();
+      explore();
+    });
+  }
+
+  if (number === 2) {
+    actors = [
+      actor('camel', 245, 510, 1.05),
+      actor('goat', 720, 525, .85),
+      actor('marmot', 870, 525, .95),
+      actor('bird', 1015, 470, .9)
+    ];
+    player = actors[0];
+
+    talk([
+      [
+        '',
+        'Нэг өглөө амьтад худгийн дэргэд ус уухаар дараалан зогсож байв.'
+      ],
+      [
+        'Ботгохон',
+        'Зай тавь! Би том болохоор түрүүлж ууна!',
+        () => { push = 1; }
+      ],
+      [
+        '',
+        'Ишиг Бор бүдэрч унаад өвдгөө шалбалчихав.',
+        () => { fall = true; }
+      ],
+      [
+        'Тарваж',
+        'Ботгохон минь, бид бүгд ээлжээ хүлээж байгаа шүү дээ.'
+      ],
+      [
+        'Ботгохон',
+        'Та нар шиг жижигхэн амьтад надад юугаар туслах юм бэ?'
+      ]
+    ], reflection);
+  }
+
+  if (number === 3) {
+    talk([
+      [
+        'Ботгохон',
+        'Энэ худагт жижиг амьтад дэндүү олон байна. Би ганцаараа өөр худаг олно.'
+      ]
+    ], () => instructions(
+      'Говийн аялал',
+      '→ сумыг дарж урагш алхаарай. Салхи босвол урагшилсаар, Space товчоор өнхөрч ирэх хамхуулыг давж үсрээрэй.',
+      startWalk
+    ));
+  }
+
+  if (number === 4) {
+    player.x = 180;
+    actors = actors.slice(1);
+
+    talk([
+      ['Жиргээ', 'Ботгохон шуурганд төөрсөн байх.'],
+      ['Бор', 'Тэр биднийг гомдоосон шүү дээ...'],
+      ['Тарваж', 'Гомдсон ч гэсэн найзаа зовлонд орхиж болохгүй.']
+    ], () => instructions(
+      'Жиргээтэй хамт хайя',
+      'Сумаар дөрвөн зүгт нисээрэй. Манан чиний ойр орчимд сарнина. Баруун доош чиглэн говийг ажиглаж, Ботгохоныг олоорой.',
+      startBird
+    ));
+  }
+
+  if (number === 5) {
+    scene = 'desert';
+    actors = [
+      actor('camel', 550, 515, 1.08),
+      actor('goat', 750, 535, .85),
+      actor('marmot', 875, 530, .95),
+      actor('bird', 1020, 425, .9)
+    ];
+    player = actors[0];
+    apology();
+  }
+
+  if (number === 6) {
+    talk([
+      ['', 'Найзууд Хөх худагтаа буцаж ирлээ. Одоо Ботгохон яах бол?']
+    ], () => instructions(
+      'Ээлжээ хүлээе',
+      'Сумаар алхаад дарааллын төгсгөл дэх ногоон дугуйд очоорой. Space товчоор ээлжээ хүлээнэ.',
+      startQueue
+    ));
+  }
+}
+
+function instructions(titleText, text, callback) {
+  panel(
+    titleText,
+    text,
+    [['Тоглох', callback]],
+    '',
+    'ХЭРХЭН ТОГЛОХ ВЭ?'
+  );
+}
+
+function explore() {
+  setMode('explore');
+  instruction = 'Сумаар хөдөлж, найзынхаа дэргэд Space дарж ярилцаарай.';
+  $('action').textContent = 'Ярилцах';
+  meter(`Найзуудтайгаа ярилцъя · ${met.size}/3`, met.size / 3);
+}
+
+function reflection() {
+  panel(
+    'Ботгохон зөв хийсэн үү?',
+    'Бодож үзээд хариултаа сонгоорой.',
+    [
+      [
+        'Тийм, тэр том болохоор түрүүлэх ёстой',
+        () => talk([
+          ['', 'Үгүй ээ. Том ч, жижиг ч бүгд ээлжээ хүлээх ёстой.']
+        ], reflection),
+        'choice'
+      ],
+      [
+        'Үгүй, тэр найзуудаа гомдоосон',
+        () => {
+          chime();
+          talk([
+            ['', 'Зөв! Бусдыг түлхэж, гомдоох нь буруу.']
+          ], () => chapterCard(3));
+        },
+        'choice'
+      ]
+    ]
+  );
+}
+
+function startWalk() {
+  scene = 'desert';
+  actors = [actor('camel', 340, 535, 1.05)];
+  player = actors[0];
+  setMode('walk');
+  elapsed = 0;
+  scroll = 0;
+  instruction = '→ сумыг дарж говийн замаар алхаарай.';
+  $('action').textContent = 'Үсрэх';
+}
+
+function startStorm() {
+  setMode('storm');
+  elapsed = 0;
+  spawn = .4;
+  obstacles = [];
+  instruction = '→ сумыг бариарай. Space товчоор хамхуул дээгүүр үсрээрэй.';
+  $('action').textContent = 'Үсрэх';
+}
+
+function stormEnd() {
+  obstacles = [];
+  player.moving = false;
+  talk([
+    ['Ботгохон', 'Ээж ээ!'],
+    ['', 'Хариу алга. Том биетэй, хүчтэй ботго ганцаараа айж, уйлж эхлэв.']
+  ], () => chapterCard(4));
+}
+
+function startBird() {
+  scene = 'bird';
+  bird = {
+    x: 260,
+    y: 250,
+    targetX: 3560,
+    targetY: 1630,
+    cx: 0,
+    cy: 0
+  };
+  setMode('bird');
+  instruction = 'Сумаар нисээрэй. Баруун доош хайвал найздаа ойртоно.';
+  $('action').textContent = 'Ажиглах';
+}
+
+function birdSuccess() {
+  chime();
+  talk([
+    ['', 'Жиргээ Ботгохоныг олж харлаа!'],
+    ['', 'Хүн бүр өөрийн гэсэн чадвартай.']
+  ], () => instructions(
+    'Тарважийн нууц жим',
+    'Сумаар Тарважийг хөдөлгөж, элсэн ханануудын завсраар найздаа хүргээрэй. Зам мухардвал буцаад өөр жимээр яваарай.',
+    startMaze
+  ));
+}
+
+function startMaze() {
+  scene = 'maze';
+  const columns = 21, rows = 11;
+  const grid = Array.from({ length: rows }, () => Array(columns).fill(1));
+  let seed = 37;
+
+  const random = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 4294967296;
+  };
+
+  const stack = [[1, 1]];
+  grid[1][1] = 0;
+
+  while (stack.length) {
+    const [x, y] = stack[stack.length - 1];
+    const options = [[2, 0], [-2, 0], [0, 2], [0, -2]].filter(([dx, dy]) =>
+      x + dx > 0 &&
+      x + dx < columns - 1 &&
+      y + dy > 0 &&
+      y + dy < rows - 1 &&
+      grid[y + dy][x + dx]
+    );
+
+    if (!options.length) {
+      stack.pop();
+      continue;
+    }
+
+    const [dx, dy] = options[Math.floor(random() * options.length)];
+    grid[y + dy / 2][x + dx / 2] = 0;
+    grid[y + dy][x + dx] = 0;
+    stack.push([x + dx, y + dy]);
+  }
+
+  maze = {
+    g: grid,
+    x: 1,
+    y: 1,
+    cool: 0,
+    visited: new Set(['1,1']),
+    goalX: 19,
+    goalY: 9
+  };
+
+  setMode('maze');
+  instruction = 'Сумаар жимийг дагаарай. Ботгохон баруун доод буланд хүлээж байна.';
+  $('action').textContent = 'Зам харах';
+}
+
+function mazeSuccess() {
+  chime();
+  talk([
+    ['', 'Тарваж хамгийн ойр замыг олов!'],
+    ['', 'Хүн бүр өөрийн гэсэн чадвартай.']
+  ], () => instructions(
+    'Бортой хамт гүйе',
+    'Бор өөрөө урагш гүйнэ. Space, ↑ эсвэл «Үсрэх» товчоор чулуу, бут дээгүүр үсрээрэй. Алдсан ч тайван үргэлжлүүлээрэй.',
+    startRunner
+  ));
+}
+
+function startRunner() {
+  scene = 'desert';
+  actors = [actor('goat', 320, 540, 1.2)];
+  player = actors[0];
+  setMode('runner');
+  runnerTime = 0;
+  scroll = 0;
+  jump = 0;
+  vy = 0;
+  spawn = .4;
+  obstacles = [];
+  instruction = 'Space эсвэл ↑ дарж чулуу, бут дээгүүр үсрээрэй.';
+  $('action').textContent = 'Үсрэх';
+}
+
+function runnerSuccess() {
+  obstacles = [];
+  chime();
+  talk([
+    ['', 'Бор хурдан гүйж очоод найзаа дуудлаа!']
+  ], () => chapterCard(5));
+}
+
+const apologyText =
+  'Би та нарыг жижигхэн гэж басамжилсан. Намайг уучлаарай, Бор оо.';
+
+function apology() {
+  panel(
+    'Ботгохон Борд юу хэлэх вэ?',
+    'Найзууд нь ирлээ! Ботгохон тэднийг хараад баярлав.',
+    [
+      [
+        apologyText,
+        () => talk([
+          ['Ботгохон', apologyText],
+          ['Бор', 'Уучилья. Бид чинь найзууд шүү дээ.']
+        ], startReturn),
+        'choice'
+      ],
+      [
+        'Та нар яагаад ийм удсан юм бэ?',
+        () => talk([
+          ['', 'Ингэж хэлбэл найзууд нь дахиад гомдоно. Дахин бодоорой.']
+        ], apology),
+        'choice'
+      ],
+      [
+        'Би ганцаараа ч гэсэн гарч чадах байсан.',
+        () => talk([
+          ['', 'Үнэхээр тийм үү? Дахин бодоорой.']
+        ], apology),
+        'choice'
+      ]
+    ]
+  );
+}
+
+function startReturn() {
+  setMode('return');
+  returnTime = 0;
+  chime();
+
+  for (let i = 0; i < 18; i++) {
+    hearts.push({
+      x: 570 + Math.random() * 400,
+      y: 470 + Math.random() * 80,
+      life: 3 + Math.random() * 4
+    });
+  }
+}
+
+function startQueue() {
+  well();
+  actors[1].x = 730;
+  actors[2].x = 885;
+  actors[3].x = 1005;
+  actors[3].y = 510;
+  player.x = 290;
+  player.y = 570;
+  setMode('queue');
+  phase = 'choose';
+  waitTime = 0;
+  instruction = 'Ногоон дугуйд очоод Space дарж ээлжээ хүлээгээрэй.';
+  $('action').textContent = 'Хүлээх';
+}
+
+function startLeaves() {
+  setMode('leaves');
+  phase = 'pick';
+  given = new Set();
+  carrying = false;
+  player.x = 550;
+  player.y = 540;
+  actors[1].x = 520;
+  actors[1].y = 575;
+  actors[2].x = 760;
+  actors[2].y = 540;
+  actors[3].x = 970;
+  actors[3].y = 435;
+  instruction = 'Модны дэргэд Space дарж навч аваад найздаа хүргээрэй.';
+  $('action').textContent = 'Навч авах';
+  meter('Найзууддаа навч өгье · 0/3', 0);
+}
+
+function ending() {
+  scene = 'sunset';
+  actors = [
+    actor('camel', 480, 295, .82),
+    actor('goat', 640, 305, .82),
+    actor('marmot', 770, 300, .9),
+    actor('bird', 895, 260, .85)
+  ];
+  player = actors[0];
+  badge('Сургамж');
+
+  const paper = panel(
+    'Сургамж',
+    'Жинхэнэ хүч нь том биед биш, эелдэг сэтгэл, найрсаг нөхөрлөлд оршдог юм.',
+    [
+      ['Багшид зориулсан асуултууд', teacher, 'secondary'],
+      ['Дахин тоглох', () => chapterCard(1)],
+      ['Гарчиг руу буцах', title, 'secondary']
+    ]
+  );
+
+  paper.style.position = 'absolute';
+  paper.style.top = '310px';
+  paper.style.left = '115px';
+  paper.style.width = '1050px';
+  paper.style.padding = '16px 28px';
+  paper.querySelector('.eyebrow').hidden = true;
+  paper.querySelector('h2').style.margin = '0 0 4px';
+  paper.querySelector('h2').style.fontSize = '32px';
+
+  const text = document.createElement('p');
+  text.textContent =
+    'Бусдыг том жижгээр нь дүгнэж болохгүй. Хүн бүр өөрийн гэсэн чадвартай.';
+
+  const proverb = document.createElement('div');
+  proverb.className = 'proverb';
+  proverb.textContent = 'Эвт шаазгай буга барина.';
+
+  paper.insertBefore(text, paper.lastChild);
+  paper.insertBefore(proverb, paper.lastChild);
+
+  paper.querySelectorAll('p').forEach(paragraph => {
+    paragraph.style.fontSize = '24px';
+    paragraph.style.lineHeight = '1.4';
+    paragraph.style.margin = '6px 0';
+  });
+
+  proverb.style.fontSize = '26px';
+  proverb.style.padding = '10px';
+  proverb.style.margin = '12px 0';
+
+  paper.querySelectorAll('.btn').forEach(button => {
+    button.style.fontSize = '21px';
+    button.style.padding = '12px 17px';
+  });
+
+  chime();
+}
+
+function teacher() {
+  const paper = panel(
+    'Багшид зориулсан асуултууд',
+    '',
+    [['Үргэлжлүүлэх', ending]]
+  );
+
+  const list = document.createElement('ol');
+  list.className = 'questions';
+
+  [
+    'Ботгохон яагаад найзуудаа гомдоосон бэ?',
+    'Жиргээ, Тарваж, Бор нар тус бүр ямар чадвараараа тусалсан бэ?',
+    'Бор яагаад Ботгохоныг уучилсан гэж бодож байна вэ?',
+    'Та найзаасаа уучлал гуйж байсан уу? Ямар санагдсан бэ?'
+  ].forEach(text => {
+    const item = document.createElement('li');
+    item.textContent = text;
+    list.appendChild(item);
+  });
+
+  paper.insertBefore(list, paper.lastChild);
+}
+
+function nearby(other, radius = 155) {
+  return Math.hypot(
+    player.x - other.x,
+    (player.y - other.y) * .7
+  ) < radius;
+}
+
+function interact() {
+  if (paused) {
+    pause(false);
+    return;
+  }
+
+  if (mode === 'dialogue') {
+    nextLine();
+    return;
+  }
+
+  if (mode === 'panel') {
+    primary?.();
+    return;
+  }
+
+  if (['walk', 'storm', 'runner'].includes(mode)) {
+    if (jump <= 0) {
+      vy = 570;
+      tone(440, .16, 'sine', .15);
+    }
+    return;
+  }
+
+  if (mode === 'explore') {
+    const friend = actors.slice(1).find(a => nearby(a));
+
+    if (friend) {
+      const who = {
+        goat: 'Бор',
+        marmot: 'Тарваж',
+        bird: 'Жиргээ'
+      }[friend.kind];
+
+      const greeting = {
+        goat: 'Сайн уу, Ботгохон! Хамтдаа тоглоё.',
+        marmot: 'Би говийн жижиг жимүүдийг сайн мэднэ.',
+        bird: 'Би өндөрт нисээд холыг харж чадна.'
+      }[friend.kind];
+
+      met.add(friend.kind);
+      talk([[who, greeting]], () =>
+        met.size === 3 ? chapterCard(2) : explore()
+      );
+    } else {
+      hint('Найздаа жаахан ойртоод дахин ярилцаарай.');
+    }
+  }
+
+  if (mode === 'bird') {
+    hint('Баруун доош нисэж, элсэн манхны цаадах найзаа хайгаарай.');
+  }
+
+  if (mode === 'maze') {
+    hint('Алхсан замын жижиг цэгүүдийг дагаж буцаж болно. Өөр салаа замыг туршаарай.');
+  }
+
+  if (mode === 'queue') {
+    if (
+      phase === 'choose' &&
+      Math.hypot(player.x - 1120, player.y - 550) < 95
+    ) {
+      phase = 'waiting';
+      instruction = 'Сайн байна! Бүгд ээлжээрээ ус ууна.';
+      chime();
+    } else if (phase === 'choose') {
+      hint('Дарааллын төгсгөл дэх ногоон дугуйд очоорой.');
+    }
+  }
+
+  if (mode === 'leaves') {
+    if (!carrying) {
+      if (player.x < 270) {
+        carrying = true;
+        phase = 'give';
+        tone(659, .2);
+        hint('Навчаа авлаа! Одоо нэг найздаа хүргээд Space дараарай.');
+        $('action').textContent = 'Навч өгөх';
+      } else {
+        hint('Зүүн талын заг модонд ойртоод навч аваарай.');
+      }
+    } else {
+      const friend = actors.slice(1).find(
+        a => !given.has(a.kind) && nearby(a)
+      );
+
+      if (friend) {
+        given.add(friend.kind);
+        carrying = false;
+        chime();
+
+        const who = {
+          goat: 'Бор',
+          marmot: 'Тарваж',
+          bird: 'Жиргээ'
+        }[friend.kind];
+
+        const thanks = {
+          goat: 'Баярлалаа, Ботгохон!',
+          marmot: 'Чи жинхэнэ найз боллоо.',
+          bird: 'Хамтдаа байх ямар сайхан бэ!'
+        }[friend.kind];
+
+        talk([[who, thanks]], () => {
+          if (given.size === 3) {
+            talk([
+              [
+                '',
+                'Тэр өдрөөс хойш Ботгохон дараалалд ээлжээ хүлээдэг, өндөр биеэрээ модноос навч татаж найзууддаа хүртээдэг болжээ.'
+              ]
+            ], ending);
+          } else {
+            setMode('leaves');
+            instruction = 'Модноос дахин навч аваад өөр найздаа өгөөрэй.';
+            $('action').textContent = 'Навч авах';
+            meter(`Найзууддаа навч өгье · ${given.size}/3`, given.size / 3);
+          }
+        });
+      } else {
+        hint('Навч аваагүй найздаа ойртоорой.');
+      }
+    }
+  }
+}
+
+// Keyboard and multitouch controls.
+addEventListener('keydown', event => {
+  const accepted = [
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+    'Space', 'Enter', 'Escape'
+  ];
+
+  if (!accepted.includes(event.code)) return;
+  event.preventDefault();
+  input();
+
+  if (event.code === 'Escape') {
+    pause(!paused);
+    return;
+  }
+
+  if (paused) {
+    if (!event.repeat && ['Enter', 'Space'].includes(event.code)) pause(false);
+    return;
+  }
+
+  if (mode === 'panel' && event.code.startsWith('Arrow')) {
+    if (event.repeat) return;
+    const direction = ['ArrowLeft', 'ArrowUp'].includes(event.code) ? -1 : 1;
+    selected = (selected + direction + menuButtons.length) % menuButtons.length;
+    menuButtons.forEach((button, index) =>
+      button.classList.toggle('selected', index === selected)
+    );
+    menuButtons[selected]?.focus();
+    return;
+  }
+
+  keys.add(event.code);
+
+  if (
+    !event.repeat &&
+    (
+      event.code === 'Space' ||
+      event.code === 'Enter' ||
+      (event.code === 'ArrowUp' && mode === 'runner')
+    )
+  ) {
+    interact();
+  }
+});
+
+addEventListener('keyup', event => keys.delete(event.code));
+
+document.querySelectorAll('[data-key]').forEach(button => {
+  const release = () => {
+    keys.delete(button.dataset.key);
+    button.classList.remove('active');
+  };
+
+  button.addEventListener('pointerdown', event => {
+    event.preventDefault();
+    input();
+    button.setPointerCapture(event.pointerId);
+    keys.add(button.dataset.key);
+    button.classList.add('active');
+
+    if (
+      button.dataset.key === 'Space' ||
+      (button.dataset.key === 'ArrowUp' && mode === 'runner')
+    ) {
+      interact();
+    }
+  });
+
+  button.addEventListener('pointerup', release);
+  button.addEventListener('pointercancel', release);
+  button.addEventListener('lostpointercapture', release);
+});
+
+const clamp = (value, minimum, maximum) =>
+  Math.max(minimum, Math.min(maximum, value));
+
+function move(dt, speed = 210) {
+  const dx = Number(keys.has('ArrowRight')) - Number(keys.has('ArrowLeft'));
+  const dy = Number(keys.has('ArrowDown')) - Number(keys.has('ArrowUp'));
+  const length = Math.hypot(dx, dy) || 1;
+
+  player.x = clamp(player.x + dx / length * dt * speed, 95, 1180);
+  player.y = clamp(player.y + dy / length * dt * speed * .6, 450, 585);
+  player.moving = !!(dx || dy);
+  if (dx) player.dir = Math.sign(dx);
+}
+
+function update(dt) {
+  time += dt;
+
+  if (audio && !muted) {
+    musicClock -= dt;
+    if (musicClock <= 0) {
+      const notes = [
+        261.63, 329.63, 392, 440, 392, 329.63, 293.66, 329.63,
+        261.63, 293.66, 392, 329.63, 293.66, 261.63, 220, 246.94
+      ];
+      tone(notes[musicIndex++ % notes.length], 1.7, 'sine', .075);
+      musicClock = .65;
+    }
+  }
+
+  if (mode === 'dialogue') {
+    const text = queue[line][1];
+    typed = Math.min(text.length, typed + dt * 30);
+    $('words').textContent = text.slice(0, Math.floor(typed));
+  }
+
+  if (push) {
+    player.x += (650 - player.x) * Math.min(1, dt * 2);
+    player.moving = Math.abs(650 - player.x) > 3;
+  } else if (
+    player &&
+    !['explore', 'walk', 'storm', 'runner', 'queue', 'leaves', 'return'].includes(mode)
+  ) {
+    player.moving = false;
+  }
+
+  if (mode === 'explore' || mode === 'leaves') move(dt);
+
+  if (mode === 'queue') {
+    if (phase === 'choose') {
+      const previousX = player.x;
+      move(dt);
+
+      if (player.x < 920 && player.y < 525) {
+        player.x = previousX;
+        player.y = 530;
+
+        talk([
+          ['Ботгохон', 'Үгүй ээ, би ээлжээ хүлээнэ.']
+        ], () => {
+          setMode('queue');
+          instruction = 'Ногоон дугуйд очоод Space дарж ээлжээ хүлээгээрэй.';
+          $('action').textContent = 'Хүлээх';
+        });
+      }
+    } else {
+      player.moving = false;
+      waitTime += dt;
+      meter('Ээлжээ тайван хүлээж байна…', waitTime / 12);
+
+      actors.slice(1).forEach((friend, index) => {
+        if (waitTime > index * 3) friend.x += (580 - friend.x) * dt * .65;
+      });
+
+      if (waitTime >= 12) {
+        talk([
+          ['', 'Ботгохон ээлжээ хүлээлээ. Одоо найзууддаа навч хүргэж өгье.']
+        ], startLeaves);
+      }
+    }
+  }
+
+  if (['walk', 'storm', 'runner'].includes(mode)) {
+    const running = mode === 'runner';
+    const forward = keys.has('ArrowRight');
+    player.moving = running || forward;
+    player.dir = 1;
+
+    const speed = running ? 290 : forward ? (mode === 'storm' ? 145 : 185) : 0;
+    scroll += speed * dt;
+    jump += vy * dt;
+    vy -= 1200 * dt;
+
+    if (jump < 0) {
+      jump = 0;
+      vy = 0;
+    }
+
+    flash = Math.max(0, flash - dt);
+
+    if (running) runnerTime += dt;
+    else if (forward) elapsed += dt;
+
+    if (mode === 'storm') {
+      player.x = clamp(player.x + (forward ? 32 : -48) * dt, 200, 350);
+    }
+
+    if (mode === 'walk') {
+      meter('Говийн зам', elapsed / TRAVEL_SECONDS);
+
+      if (elapsed >= TRAVEL_SECONDS) {
+        player.moving = false;
+        talk([
+          [
+            '',
+            'Нар хайрч, элс гялалзана. Гэнэт хүчтэй салхи босож, шар шороон шуурга дэгдлээ.'
+          ]
+        ], startStorm);
+      }
+    } else {
+      spawn -= dt;
+
+      if (spawn <= 0) {
+        obstacles.push({
+          x: 1350,
+          kind: running ? (Math.random() < .5 ? 'rock' : 'bush') : 'tumble',
+          hit: false
+        });
+        spawn = 2.1 + Math.random() * 1.3;
+      }
+
+      for (const obstacle of obstacles) {
+        obstacle.x -= (running ? 330 : forward ? 300 : 150) * dt;
+
+        if (
+          !obstacle.hit &&
+          Math.abs(obstacle.x - player.x) < 52 &&
+          jump < 70
+        ) {
+          obstacle.hit = true;
+          flash = .7;
+          hint('Зүгээр ээ! Дараагийн удаа арай эрт үсрээд үзээрэй.', 2.5);
+          tone(220, .2, 'sine', .1);
+        }
+      }
+
+      obstacles = obstacles.filter(obstacle => obstacle.x > -80);
+
+      meter(
+        running ? 'Бор найздаа ойртож байна' : 'Шуургыг хамтдаа туулъя',
+        running ? runnerTime / TRAVEL_SECONDS : elapsed / TRAVEL_SECONDS
+      );
+
+      if (running && runnerTime >= TRAVEL_SECONDS) runnerSuccess();
+      else if (!running && elapsed >= TRAVEL_SECONDS) stormEnd();
+    }
+  }
+
+  if (mode === 'bird') {
+    const dx = Number(keys.has('ArrowRight')) - Number(keys.has('ArrowLeft'));
+    const dy = Number(keys.has('ArrowDown')) - Number(keys.has('ArrowUp'));
+    const length = Math.hypot(dx, dy) || 1;
+
+    bird.x = clamp(bird.x + dx / length * dt * 180, 80, 3920);
+    bird.y = clamp(bird.y + dy / length * dt * 180, 90, 2010);
+
+    const distance = Math.hypot(
+      bird.x - bird.targetX,
+      bird.y - bird.targetY
+    );
+
+    meter(
+      distance < 650
+        ? 'Найз чинь ойрхон байна!'
+        : 'Жиргээ өндөрт нисэж, говийг ажиглана',
+      1 - distance / 3650
+    );
+
+    if (distance < 140) birdSuccess();
+  }
+
+  if (mode === 'maze') {
+    maze.cool -= dt;
+    let dx = 0, dy = 0;
+
+    if (keys.has('ArrowRight')) dx = 1;
+    else if (keys.has('ArrowLeft')) dx = -1;
+    else if (keys.has('ArrowUp')) dy = -1;
+    else if (keys.has('ArrowDown')) dy = 1;
+
+    if ((dx || dy) && maze.cool <= 0) {
+      maze.cool = .16;
+      const x = maze.x + dx;
+      const y = maze.y + dy;
+
+      if (maze.g[y]?.[x] === 0) {
+        maze.x = x;
+        maze.y = y;
+        maze.visited.add(x + ',' + y);
+        tone(330, .045, 'sine', .04);
+      }
+
+      if (maze.x === maze.goalX && maze.y === maze.goalY) mazeSuccess();
+    }
+  }
+
+  if (mode === 'return') {
+    returnTime += dt;
+    scroll += dt * 95;
+
+    actors.forEach((friend, index) => {
+      friend.dir = -1;
+      friend.moving = true;
+      friend.x = 550 + index * 155 - Math.min(returnTime, 5) * 38;
+    });
+
+    if (returnTime >= TRAVEL_SECONDS) chapterCard(6);
+  }
+
+  hearts.forEach(heart => {
+    heart.y -= dt * 30;
+    heart.life -= dt;
+  });
+  hearts = hearts.filter(heart => heart.life > 0);
+
+  const showHint =
+    mode !== 'dialogue' &&
+    mode !== 'panel' &&
+    (
+      hintUntil > time ||
+      (instruction && (time - lastInput > 10 || time - lastInput < 5))
+    );
+
+  $('hint').hidden = !showHint;
+
+  if (showHint) {
+    $('hint').textContent = hintUntil > time ? hintText : instruction;
+  }
+}
+
+// All artwork below is generated locally with Canvas paths.
+function ellipse(context, x, y, rx, ry, color) {
+  context.fillStyle = color;
+  context.beginPath();
+  context.ellipse(x, y, rx, ry, 0, 0, TAU);
+  context.fill();
+}
+
+function path(context, points, color, stroke, width = 3) {
+  context.beginPath();
+  points(context);
+
+  if (color) {
+    context.fillStyle = color;
+    context.fill();
+  }
+
+  if (stroke) {
+    context.strokeStyle = stroke;
+    context.lineWidth = width;
+    context.lineCap = 'round';
+    context.lineJoin = 'round';
+    context.stroke();
+  }
+}
+
+function round(context, x, y, width, height, radius, color) {
+  context.fillStyle = color;
+  context.beginPath();
+  context.roundRect(x, y, width, height, radius);
+  context.fill();
+}
+
+function eye(context, x, y, scale = 1) {
+  const blink = Math.sin(time * .73 + x * .09) > .993;
+
+  if (blink) {
+    path(context, p => {
+      p.moveTo(x - 6 * scale, y);
+      p.lineTo(x + 6 * scale, y);
+    }, null, '#523e31', 3);
+    return;
+  }
+
+  ellipse(context, x, y, 8 * scale, 10 * scale, '#fffaf1');
+  ellipse(context, x + 2 * scale, y + scale, 4.8 * scale, 6.7 * scale, '#523a2e');
+  ellipse(context, x + 3 * scale, y - 2 * scale, 1.7 * scale, 2 * scale, 'white');
+}
+
+function drawAnimal(context, animal, portrait = false) {
+  context.save();
+  context.translate(animal.x, animal.y);
+  context.scale(animal.s * animal.dir, animal.s);
+
+  const bounce = animal.moving
+    ? Math.sin(time * 12) * 4
+    : Math.sin(time * 2.3) * 1.8;
+
+  context.translate(0, bounce);
+  const kind = animal.kind;
+
+  if (!portrait) {
+    ellipse(context, 0, 5, kind === 'camel' ? 78 : 44, 11, '#8e75402a');
+  }
+
+  const swing = animal.moving ? Math.sin(time * 12) * 12 : 0;
+
+  if (kind === 'camel') {
+    const extend =
+      mode === 'leaves' && player === animal && animal.x < 270 ? 22 : 0;
+
+    path(context, p => {
+      p.moveTo(-58, -72);
+      p.quadraticCurveTo(-104, -86, -98, -56);
+    }, null, '#b28451', 9);
+
+    for (const [x, sign] of [[-40, 1], [-13, -1], [30, 1], [50, -1]]) {
+      path(context, p => {
+        p.moveTo(x, -72);
+        p.lineTo(x + sign * swing * .4, -38);
+        p.lineTo(x + sign * swing, 0);
+      }, null, x === -13 || x === 50 ? '#b98b59' : '#d3a870', 13);
+
+      ellipse(context, x + sign * swing, 0, 12, 6, '#86644a');
+    }
+
+    path(context, p => {
+      p.moveTo(-67, -81);
+      p.bezierCurveTo(-84, -115, -62, -147, -47, -139);
+      p.quadraticCurveTo(-28, -179, -12, -119);
+      p.quadraticCurveTo(14, -176, 37, -127);
+      p.quadraticCurveTo(68, -116, 66, -74);
+      p.quadraticCurveTo(4, -50, -67, -81);
+    }, '#d9b17a', '#b88953', 3);
+
+    ellipse(context, -11, -88, 52, 26, '#e5c18c');
+
+    path(context, p => {
+      p.moveTo(38, -89);
+      p.bezierCurveTo(55, -111, 41, -165 - extend, 61, -185 - extend);
+      p.quadraticCurveTo(82, -201 - extend, 91, -173 - extend);
+      p.lineTo(78, -80);
+    }, '#d9b17a', '#b88953', 3);
+
+    ellipse(context, 64, -209 - extend, 12, 24, '#d6aa72');
+    ellipse(context, 63, -208 - extend, 5, 14, '#e9c3a5');
+    ellipse(context, 95, -201 - extend, 11, 23, '#d6aa72');
+    ellipse(context, 80, -179 - extend, 33, 31, '#e5be87');
+    ellipse(context, 102, -161 - extend, 29, 18, '#edd1a3');
+    eye(context, 82, -182 - extend, 1.08);
+    ellipse(context, 119, -164 - extend, 2.5, 3, '#805c42');
+
+    path(context, p => {
+      p.moveTo(99, -151 - extend);
+      p.quadraticCurveTo(106, -146 - extend, 114, -152 - extend);
+    }, null, '#93654b', 2.5);
+
+    ellipse(context, 76, -164 - extend, 10, 5, '#e4a390');
+
+    path(context, p => {
+      p.moveTo(58, -146 - extend);
+      p.quadraticCurveTo(72, -138 - extend, 88, -145 - extend);
+      p.lineTo(86, -132 - extend);
+      p.quadraticCurveTo(72, -126 - extend, 55, -136 - extend);
+      p.closePath();
+    }, '#699eaf');
+
+    path(context, p => {
+      p.moveTo(62, -132 - extend);
+      p.lineTo(44, -103 - extend);
+      p.lineTo(64, -107 - extend);
+      p.lineTo(75, -134 - extend);
+    }, '#82b9c8');
+
+    if (carrying && animal === player) {
+      leaf(context, 115, -150 - extend, 1.2);
+    }
+  }
+
+  if (kind === 'goat') {
+    for (const x of [-25, -8, 20, 34]) {
+      path(context, p => {
+        p.moveTo(x, -48);
+        p.lineTo(x + (x % 2 ? swing : -swing) * .45, 0);
+      }, null, '#928879', 9);
+
+      ellipse(context, x + (x % 2 ? swing : -swing) * .45, 0, 8, 5, '#665b50');
+    }
+
+    path(context, p => {
+      p.moveTo(-34, -60);
+      p.quadraticCurveTo(-57, -82, -48, -91);
+    }, null, '#a59b8a', 9);
+
+    ellipse(context, 0, -56, 45, 29, '#a79c89');
+    ellipse(context, 25, -77, 22, 30, '#aaa08e');
+
+    path(context, p => {
+      p.moveTo(22, -108);
+      p.quadraticCurveTo(12, -140, 29, -137);
+      p.moveTo(42, -110);
+      p.quadraticCurveTo(41, -136, 49, -132);
+    }, null, '#776b5c', 7);
+
+    ellipse(context, 13, -105, 20, 9, '#a69b88');
+    ellipse(context, 55, -105, 19, 9, '#a69b88');
+    ellipse(context, 35, -96, 27, 29, '#b7ac98');
+    ellipse(context, 34, -110, 11, 14, '#fcf5df');
+    ellipse(context, 45, -80, 22, 14, '#c8bea7');
+    eye(context, 40, -99, .83);
+    ellipse(context, 59, -82, 3, 2, '#5d5145');
+    ellipse(context, 31, -82, 7, 4, '#d7a597');
+  }
+
+  if (kind === 'marmot') {
+    ellipse(context, -25, 0, 20, 8, '#967147');
+    ellipse(context, 25, 0, 20, 8, '#967147');
+    ellipse(context, 0, -45, 42, 51, '#bf935a');
+    ellipse(context, 0, -39, 27, 34, '#e4be83');
+    ellipse(context, -27, -94, 13, 14, '#b68a52');
+    ellipse(context, 28, -94, 13, 14, '#b68a52');
+    ellipse(context, 0, -82, 40, 34, '#c89d64');
+    ellipse(context, 0, -67, 25, 16, '#efd2a0');
+    eye(context, -15, -87, .8);
+    eye(context, 15, -87, .8);
+    ellipse(context, 0, -73, 7, 4, '#735139');
+
+    path(context, p => {
+      p.moveTo(-8, -62);
+      p.quadraticCurveTo(0, -56, 8, -62);
+    }, null, '#855a3c', 2);
+
+    ellipse(context, -35, -45 + swing * .3, 12, 22, '#b18551');
+    ellipse(context, 35, -45 - swing * .3, 12, 22, '#b18551');
+  }
+
+  if (kind === 'bird') {
+    path(context, p => {
+      p.moveTo(-28, -30);
+      p.lineTo(-58, -55);
+      p.lineTo(-53, -26);
+      p.closePath();
+    }, '#90714f');
+
+    ellipse(context, 0, -31, 35, 26, '#b19066');
+    ellipse(context, 15, -60, 25, 24, '#b7986d');
+
+    path(context, p => {
+      p.moveTo(2, -80);
+      p.lineTo(7, -103);
+      p.lineTo(15, -84);
+      p.lineTo(24, -98);
+      p.lineTo(27, -77);
+    }, '#94704a');
+
+    ellipse(context, 0, -27, 22, 16, '#dfc69a');
+
+    context.save();
+    context.translate(-8, -39);
+    context.rotate(Math.sin(time * 12) * (scene === 'bird' ? .7 : .12));
+    ellipse(context, -7, 0, 24, 11, '#9e7c54');
+    context.restore();
+
+    eye(context, 24, -63, .72);
+
+    path(context, p => {
+      p.moveTo(36, -59);
+      p.lineTo(53, -54);
+      p.lineTo(36, -48);
+    }, '#d6a453');
+
+    for (let i = 0; i < 5; i++) {
+      ellipse(context, -8 + i * 7, -23 + (i % 2) * 6, 2, 3, '#997549');
+    }
+
+    path(context, p => {
+      p.moveTo(-7, -8);
+      p.lineTo(-9, 0);
+      p.lineTo(-17, 0);
+      p.moveTo(12, -8);
+      p.lineTo(14, 0);
+      p.lineTo(21, 0);
+    }, null, '#92704e', 3);
+  }
+
+  context.restore();
+}
+
+function leaf(context, x, y, scale = 1) {
+  context.save();
+  context.translate(x, y);
+  context.scale(scale, scale);
+
+  path(context, p => {
+    p.moveTo(-13, 4);
+    p.quadraticCurveTo(-7, -18, 18, -11);
+    p.quadraticCurveTo(15, 11, -13, 4);
+  }, '#83a467');
+
+  path(context, p => {
+    p.moveTo(-14, 7);
+    p.lineTo(11, -6);
+  }, null, '#577b50', 2);
+
+  context.restore();
+}
+
+function sky(sunset = false) {
+  const gradient = ctx.createLinearGradient(0, 0, 0, H);
+  gradient.addColorStop(0, sunset ? '#e8a387' : '#b6dce6');
+  gradient.addColorStop(.56, sunset ? '#f9dab0' : '#e7ecd5');
+  gradient.addColorStop(1, '#efce95');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, W, H);
+
+  ellipse(
+    ctx,
+    sunset ? 1040 : 1060,
+    sunset ? 270 : 133,
+    61,
+    61,
+    sunset ? '#ffe6aa' : '#fff1b1'
+  );
+
+  ellipse(ctx, 1060, sunset ? 270 : 133, 79, 79, '#fff2be22');
+
+  for (let i = 0; i < 5; i++) {
+    const x = ((i * 330 + time * 4) % 1600) - 180;
+    ellipse(ctx, x, 130 + i % 2 * 58, 66, 13, '#fffaf24d');
+    ellipse(ctx, x + 40, 124 + i % 2 * 58, 43, 19, '#fffaf24d');
+  }
+
+  path(ctx, p => {
+    p.moveTo(0, 367);
+    for (let i = 0; i <= 8; i++) {
+      p.lineTo(i * 190, 310 + Math.sin(i * 2) * 36);
+    }
+    p.lineTo(W, H);
+    p.lineTo(0, H);
+  }, '#d1cba7');
+
+  dunes(scroll);
+}
+
+function dunes(offset = 0) {
+  for (let layer = 0; layer < 3; layer++) {
+    const y = 365 + layer * 85;
+
+    path(ctx, p => {
+      p.moveTo(0, y);
+
+      for (let x = 0; x <= W + 30; x += 20) {
+        p.lineTo(
+          x,
+          y + Math.sin((x + offset * (.1 + layer * .15)) / 230 + layer * 2) * 30
+        );
+      }
+
+      p.lineTo(W, H);
+      p.lineTo(0, H);
+      p.closePath();
+    }, ['#e8c78f', '#efd29d', '#f4dbad'][layer]);
+  }
+
+  for (let i = 0; i < 20; i++) {
+    const x = ((i * 137 - offset * .7) % 1420 + 1420) % 1420 - 70;
+    const y = 520 + (i * 59) % 180;
+
+    path(ctx, p => {
+      p.moveTo(x, y);
+      p.quadraticCurveTo(x + 14, y - 5, x + 29, y);
+    }, null, '#d9b88055', 2);
+  }
+}
+
+function drawWell() {
+  ellipse(ctx, 650, 514, 154, 25, '#8f754627');
+  round(ctx, 550, 390, 158, 104, 12, '#739fac');
+
+  for (let i = 0; i < 6; i++) {
+    path(ctx, p => {
+      p.moveTo(560 + i * 27, 398);
+      p.lineTo(560 + i * 27, 484);
+    }, null, '#4d808e', 2);
+  }
+
+  round(ctx, 534, 380, 190, 24, 9, '#8ab3bb');
+  ellipse(ctx, 630, 385, 80, 12, '#3b6c82');
+  ellipse(ctx, 630, 386, 61, 6, '#9fd0d7');
+  round(ctx, 557, 258, 14, 142, 5, '#7e9a9b');
+  round(ctx, 694, 258, 14, 142, 5, '#7e9a9b');
+
+  path(ctx, p => {
+    p.moveTo(519, 271);
+    p.lineTo(632, 216);
+    p.lineTo(742, 271);
+    p.closePath();
+  }, '#77a3af', '#527c8a', 4);
+
+  path(ctx, p => {
+    p.moveTo(632, 263);
+    p.lineTo(632, 362);
+  }, null, '#b38c57', 4);
+
+  round(ctx, 613, 342, 38, 36, 6, '#aa9474');
+  round(ctx, 716, 453, 150, 55, 17, '#bab8a2');
+  ellipse(ctx, 791, 456, 65, 14, '#858f88');
+  ellipse(ctx, 791, 456, 54, 9, '#8bbfc6');
+}
+
+function tree() {
+  path(ctx, p => {
+    p.moveTo(185, 519);
+    p.bezierCurveTo(181, 450, 209, 417, 193, 343);
+    p.moveTo(195, 424);
+    p.quadraticCurveTo(150, 398, 124, 351);
+    p.moveTo(193, 389);
+    p.quadraticCurveTo(252, 367, 266, 313);
+    p.moveTo(193, 350);
+    p.lineTo(160, 300);
+  }, null, '#9c845d', 15);
+
+  for (let i = 0; i < 13; i++) {
+    const x = 120 + (i * 47) % 165;
+    const y = 300 + (i * 29) % 103;
+    ellipse(ctx, x, y, 37, 17, ['#a3b47d', '#b9c38d', '#8fa873'][i % 3]);
+  }
+
+  for (let i = 0; i < 9; i++) {
+    leaf(ctx, 133 + i * 16, 339 + Math.sin(i) * 37, .65);
+  }
+}
+
+function label(x, y, text, color = '#6e6551') {
+  ctx.font = '700 21px "Noto Sans",sans-serif';
+  ctx.textAlign = 'center';
+  const width = ctx.measureText(text).width + 28;
+  round(ctx, x - width / 2, y - 24, width, 35, 14, '#fffaf0e8');
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
+}
+
+function drawObstacle(obstacle) {
+  ctx.save();
+  ctx.translate(obstacle.x, 535);
+  if (obstacle.hit) ctx.globalAlpha = .45;
+
+  if (obstacle.kind === 'rock') {
+    path(ctx, p => {
+      p.moveTo(-31, 4);
+      p.lineTo(-29, -24);
+      p.quadraticCurveTo(-8, -63, 12, -42);
+      p.lineTo(34, -9);
+      p.lineTo(28, 4);
+    }, '#b9ac95', '#9f947e', 3);
+
+    path(ctx, p => {
+      p.moveTo(-16, -30);
+      p.lineTo(1, -39);
+      p.lineTo(14, -22);
+    }, null, '#d4c8af', 4);
+  } else if (obstacle.kind === 'bush') {
+    for (let i = 0; i < 5; i++) {
+      ellipse(ctx, -27 + i * 14, -12 - Math.sin(i) * 14, 15, 20, '#a3ae76');
+    }
+  } else {
+    ctx.translate(0, -28);
+    ctx.rotate(-time * 4);
+
+    for (let i = 0; i < 7; i++) {
+      ctx.rotate(.9);
+      path(ctx, p => {
+        p.moveTo(-31, 0);
+        p.bezierCurveTo(-14, -38, 26, -27, 30, 2);
+        p.bezierCurveTo(13, 26, -29, 24, -31, 0);
+      }, null, '#b99b61', 2);
+    }
+
+    ellipse(ctx, 0, 0, 8, 9, '#bc9b6350');
+  }
+
+  ctx.restore();
+}
+
+function drawBirdWorld() {
+  sky();
+  const cx = clamp(bird.x - W / 2, 0, 4000 - W);
+  const cy = clamp(bird.y - H / 2, 0, 2100 - H);
+  bird.cx = cx;
+  bird.cy = cy;
+
+  ctx.fillStyle = '#efdaae';
+  ctx.fillRect(0, 0, W, H);
+
+  for (let i = 0; i < 90; i++) {
+    const x = (i * 431) % 4000 - cx;
+    const y = (i * 277) % 2100 - cy;
+
+    path(ctx, p => {
+      p.moveTo(x - 100, y + 30);
+      p.quadraticCurveTo(x, y - 65, x + 120, y + 30);
+    }, '#e1c392');
+
+    path(ctx, p => {
+      p.moveTo(x - 60, y + 24);
+      p.quadraticCurveTo(x, y - 22, x + 60, y + 20);
+    }, null, '#f7e3bd', 3);
+  }
+
+  drawAnimal(
+    ctx,
+    actor('camel', bird.targetX - cx, bird.targetY - cy, .78)
+  );
+
+  const x = bird.x - cx;
+  const y = bird.y - cy;
+  const fog = ctx.createRadialGradient(x, y, 90, x, y, 340);
+  fog.addColorStop(0, '#eceddf00');
+  fog.addColorStop(.55, '#eceddfb8');
+  fog.addColorStop(1, '#eceddfef');
+  ctx.fillStyle = fog;
+  ctx.fillRect(0, 0, W, H);
+
+  drawAnimal(ctx, actor('bird', x, y, 1.2));
+
+  ctx.save();
+  ctx.translate(x, y + 75);
+  ctx.rotate(Math.atan2(bird.targetY - bird.y, bird.targetX - bird.x));
+
+  path(ctx, p => {
+    p.moveTo(20, 0);
+    p.lineTo(-9, -9);
+    p.lineTo(-4, 0);
+    p.lineTo(-9, 9);
+    p.closePath();
+  }, '#63929a');
+
+  ctx.restore();
+  label(1100, 155, 'Найзаа хайя');
+}
+
+function drawMaze() {
+  sky();
+
+  const cell = 43, ox = 188, oy = 119;
+  round(ctx, ox - 17, oy - 17, 21 * cell + 34, 11 * cell + 34, 24, '#fbecd0');
+
+  for (let y = 0; y < 11; y++) {
+    for (let x = 0; x < 21; x++) {
+      const px = ox + x * cell;
+      const py = oy + y * cell;
+
+      if (maze.g[y][x]) {
+        round(ctx, px + 1, py + 1, cell - 2, cell - 2, 12, '#d7b679');
+
+        path(ctx, p => {
+          p.moveTo(px + 9, py + 11);
+          p.quadraticCurveTo(px + 22, py + 4, px + 34, py + 11);
+        }, null, '#ead2a0', 2);
+      } else if (maze.visited.has(x + ',' + y)) {
+        ellipse(ctx, px + cell / 2, py + cell / 2, 4, 4, '#b0b28a');
+      }
+    }
+  }
+
+  const tx = ox + maze.goalX * cell + cell / 2;
+  const ty = oy + maze.goalY * cell + cell * .85;
+  ellipse(ctx, tx, ty - 12, 20, 20, '#bfd4b3');
+  drawAnimal(ctx, actor('camel', tx - 6, ty, .23));
+
+  drawAnimal(ctx, actor(
+    'marmot',
+    ox + maze.x * cell + cell / 2,
+    oy + maze.y * cell + cell * .88,
+    .35
+  ));
+}
+
+function render() {
+  ctx.clearRect(0, 0, W, H);
+
+  if (scene === 'bird' && bird.x !== undefined) {
+    drawBirdWorld();
+  } else if (scene === 'maze' && maze.g) {
+    drawMaze();
+  } else {
+    sky(scene === 'sunset');
+
+    if (scene === 'well') {
+      tree();
+      drawWell();
+
+      if (mode === 'queue') {
+        ctx.save();
+        ctx.setLineDash([9, 7]);
+        ctx.strokeStyle = '#739c79';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.ellipse(1120, 556, 65, 24, 0, 0, TAU);
+        ctx.stroke();
+        ctx.restore();
+        label(1110, 606, 'Дарааллын төгсгөл');
+      }
+
+      if (mode === 'leaves') label(180, 258, 'Навч авах');
+    }
+
+    const sorted = [...actors].sort((a, b) => a.y - b.y);
+
+    for (const animal of sorted) {
+      ctx.save();
+
+      if (animal === player && ['walk', 'storm', 'runner'].includes(mode)) {
+        ctx.translate(0, -jump);
+        if (flash > 0) ctx.globalAlpha = .65;
+      }
+
+      if (animal.kind === 'goat' && fall) {
+        ctx.translate(animal.x, animal.y - 25);
+        ctx.rotate(-.45);
+        ctx.translate(-animal.x, -animal.y);
+      }
+
+      drawAnimal(ctx, animal);
+      ctx.restore();
+
+      if (mode === 'explore' && animal !== player) {
+        label(
+          animal.x,
+          animal.y - (animal.kind === 'bird' ? 125 : 165),
+          met.has(animal.kind)
+            ? '✓'
+            : { goat: 'Бор', marmot: 'Тарваж', bird: 'Жиргээ' }[animal.kind]
+        );
+      }
+
+      if (mode === 'leaves' && animal !== player) {
+        if (given.has(animal.kind)) {
+          leaf(ctx, animal.x + 40, animal.y - 75);
+        } else {
+          label(animal.x, animal.y - 150, carrying ? 'Навч өгөх' : '♡');
+        }
+      }
+    }
+
+    for (const obstacle of obstacles) drawObstacle(obstacle);
+
+    if (mode === 'storm') {
+      ctx.fillStyle = '#e6ce9d70';
+      ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = '#fff0cd80';
+      ctx.lineWidth = 2;
+
+      for (let i = 0; i < 90; i++) {
+        const x =
+          ((i * 147 - time * (240 + i % 7 * 25)) % 1500 + 1500) % 1500 - 110;
+        const y = (i * 61 + Math.sin(time + i) * 12) % 720;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + 25 + i % 18, y - 6);
+        ctx.stroke();
+      }
+    }
+  }
+
+  for (const heart of hearts) {
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, heart.life);
+    ctx.translate(heart.x, heart.y);
+
+    path(ctx, p => {
+      p.moveTo(0, 6);
+      p.bezierCurveTo(-30, -10, -15, -25, 0, -12);
+      p.bezierCurveTo(15, -25, 30, -10, 0, 6);
+    }, '#d88f86');
+
+    ctx.restore();
+  }
+
+  if (mode === 'dialogue' && queue[line][0]) {
+    face.clearRect(0, 0, 232, 260);
+    face.save();
+    face.scale(2, 2);
+
+    const kind = {
+      'Ботгохон': 'camel',
+      'Бор': 'goat',
+      'Тарваж': 'marmot',
+      'Жиргээ': 'bird'
+    }[queue[line][0]] || 'camel';
+
+    drawAnimal(
+      face,
+      actor(
+        kind,
+        kind === 'camel' ? 15 : 56,
+        kind === 'camel' ? 196 : 123,
+        kind === 'camel' ? .8 : .98
+      ),
+      true
+    );
+
+    face.restore();
+  }
+}
+
+let previous = performance.now();
+
+function loop(now) {
+  const dt = Math.min(.04, (now - previous) / 1000);
+  previous = now;
+  if (!paused) update(dt);
+  render();
+  requestAnimationFrame(loop);
+}
+
+title();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
